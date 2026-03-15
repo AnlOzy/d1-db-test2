@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>User Saver v2</title>
+</head>
+<body>
+    <h1>TFT Database Test 2</h1>
+
+    <a href="/api/test" target="_blank">
+        <button type="button">View Raw JSON Data</button>
+    </a>
+
+    <hr>
+
+    <div>
+        <label for="userInput">User Name:</label>
+        <input type="text" id="userInput" placeholder="Enter name...">
+        <button onclick="savePlayer()">Save to DB</button>
+    </div>
+
+    <h3>Stored Users:</h3>
+    <ul id="userList"></ul>
+
+    <script>
+        async function savePlayer() {
+            const input = document.getElementById('userInput');
+            const name = input.value;
+            if (!name) return;
+
+            const response = await fetch('/api/test', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: name })
+            });
+
+            if (response.ok) {
+                input.value = '';
+                loadPlayers();
+            }
+        }
+
+        async function loadPlayers() {
+            const res = await fetch('/api/test');
+            const data = await res.json();
+            const list = document.getElementById('userList');
+            list.innerHTML = data.map(p => `<li>${p.name} (ID: ${p.id})</li>`).join('');
+        }
+
+        loadPlayers();
+    </script>
+</body>
+</html>
