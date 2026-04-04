@@ -44,9 +44,16 @@
             const res = await fetch('/api/test');
             const data = await res.json();
             const list = document.getElementById('userList');
-            list.innerHTML = data.map(p => `<li>${p.name} (ID: ${p.id})</li>`).join('');
+            
+            list.innerHTML = data.map(p => `
+                <li style="margin-bottom: 15px; border-bottom: 1px solid #eee;">
+                    <strong>${p.first_name} ${p.family_name}</strong><br>
+                    NI: ${p.national_insurance} | E-Visa: ${p.evisa_ref_no}<br>
+                    ARC: ${p.arc_number} | Port Ref: ${p.port_ref_no}
+                </li>
+            `).join('');
         }
-
+        
         loadPlayers();
     </script>
 </body>
