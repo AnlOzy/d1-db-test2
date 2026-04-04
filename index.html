@@ -16,14 +16,14 @@
     <div>
         <label for="userInput">User Name:</label>
         <input type="text" id="userInput" placeholder="Enter name...">
-        <button onclick="savePlayer()">Save to DB</button>
+        <button onclick="saveUser()">Save to DB</button>
     </div>
 
     <h3>Stored Users:</h3>
     <ul id="userList"></ul>
 
     <script>
-        async function savePlayer() {
+        async function saveUser() {
             const input = document.getElementById('userInput');
             const name = input.value;
             if (!name) return;
@@ -36,11 +36,11 @@
 
             if (response.ok) {
                 input.value = '';
-                loadPlayers();
+                loadUser();
             }
         }
 
-        async function loadPlayers() {
+        async function loadUser() {
             const res = await fetch('/api/test');
             const data = await res.json();
             const list = document.getElementById('userList');
@@ -54,7 +54,7 @@
             `).join('');
         }
         
-        loadPlayers();
+        loadUser();
     </script>
 </body>
 </html>
