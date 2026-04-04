@@ -19,8 +19,8 @@ export async function onRequest(context) {
   const dummyData = [
     {
       id: 1,
-      first_name: "Anil",
-      family_name: "Ozyol",
+      first_name: "John",
+      family_name: "Doe",
       national_insurance: "QQ 12 34 56 A",
       evisa_ref_no: "EVI-987654321",
       arc_number: "ARC00112233",
