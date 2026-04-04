@@ -24,11 +24,11 @@ export async function onRequest(context) {
     { id: 5, first_name: "Leo", family_name: "Taylor", national_insurance: "PP 55 44 33 D", evisa_ref_no: "EVI-700800901", arc_number: "ARC33336666", port_ref_no: "LGW-301" },
     { id: 6, first_name: "Ava", family_name: "Taylor", national_insurance: "LM 66 77 88 E", evisa_ref_no: "EVI-700800902", arc_number: "ARC33337777", port_ref_no: "LGW-302" },
     { id: 7, first_name: "George", family_name: "Taylor", national_insurance: "JW 12 34 56 F", evisa_ref_no: "EVI-700800903", arc_number: "ARC33338888", port_ref_no: "LGW-303" },
-    { id: 8, first_name: "Muhammad", family_name: "Brown", national_insurance: "RS 09 08 07 G", evisa_ref_no: "EVI-900100200", arc_number: "ARC44449999", port_ref_no: "BHX-401" },
+    { id: 8, first_name: "John", family_name: "Brown", national_insurance: "RS 09 08 07 G", evisa_ref_no: "EVI-900100200", arc_number: "ARC44449999", port_ref_no: "BHX-401" },
     { id: 9, first_name: "Olivia", family_name: "Williams", national_insurance: "KB 21 43 65 H", evisa_ref_no: "EVI-300600900", arc_number: "ARC55550000", port_ref_no: "STN-501" },
     { id: 10, first_name: "Arthur", family_name: "Wilson", national_insurance: "ZZ 11 11 11 J", evisa_ref_no: "EVI-200400800", arc_number: "ARC66661111", port_ref_no: "EDI-601" },
     { id: 11, first_name: "Ivy", family_name: "Johnson", national_insurance: "MM 99 88 77 K", evisa_ref_no: "EVI-500100500", arc_number: "ARC77772222", port_ref_no: "GLA-701" },
-    { id: 12, first_name: "Muhammad", family_name: "Davies", national_insurance: "NX 33 22 11 L", evisa_ref_no: "EVI-800200400", arc_number: "ARC88883333", port_ref_no: "BFT-801" }
+    { id: 12, first_name: "John", family_name: "Davies", national_insurance: "NX 33 22 11 L", evisa_ref_no: "EVI-800200400", arc_number: "ARC88883333", port_ref_no: "BFT-801" }
   ];
 
   return new Response(JSON.stringify(dummyData), {
