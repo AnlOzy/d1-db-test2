@@ -2,27 +2,106 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>People Database</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>People Management System</title>
     <style>
-        body { font-family: sans-serif; padding: 20px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
-        th { background-color: #f4f4f4; }
-        .error { color: red; font-weight: bold; }
+        :root {
+            --primary-color: #2563eb;
+            --bg-color: #f8fafc;
+            --text-color: #1e293b;
+        }
+
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 40px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 20px;
+            margin-bottom: 20px;
+        }
+
+        h1 { margin: 0; font-size: 1.5rem; }
+
+        .api-btn {
+            background-color: #64748b;
+            color: white;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 0.875rem;
+        }
+
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin-top: 10px; 
+        }
+
+        th, td { 
+            padding: 12px 15px; 
+            text-align: left; 
+            border-bottom: 1px solid #e2e8f0; 
+        }
+
+        th { 
+            background-color: #f1f5f9; 
+            font-weight: 600; 
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+        }
+
+        tr:hover { background-color: #f8fafc; }
+
+        .details-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background 0.2s;
+        }
+
+        .details-btn:hover {
+            background-color: #1d4ed8;
+        }
+
+        #status {
+            margin-top: 10px;
+            font-size: 0.875rem;
+            color: #64748b;
+        }
     </style>
 </head>
 <body>
-    <h1>People Database</h1>
 
-    <a href="/api/test" target="_blank">
-        <button type="button">Check Raw API Data</button>
-    </a>
+<div class="container">
+    <header>
+        <h1>People Database</h1>
+        <a href="/api/test" target="_blank" class="api-btn">Inspect Raw JSON</a>
+    </header>
 
-    <hr>
+    <div id="status">Syncing with Cloudflare D1...</div>
 
-    <div id="status-message"></div>
-
-    <h3>Stored Records:</h3>
     <table>
         <thead>
             <tr>
@@ -30,55 +109,79 @@
                 <th>DOB</th>
                 <th>NI Number</th>
                 <th>Hotel</th>
-                <th>Country</th>
+                <th>Actions</th>
             </tr>
         </thead>
-        <tbody id="displayArea">
-            </tbody>
+        <tbody id="peopleTableBody">
+            <tr><td colspan="5">Loading records...</td></tr>
+        </tbody>
     </table>
+</div>
 
-    <script>
-        async function loadUser() {
-            console.log("Attempting to load data...");
-            const display = document.getElementById('displayArea');
-            const status = document.getElementById('status-message');
+<script>
+    /**
+     * Fetches the Master Data Object and populates the table
+     */
+    async function loadData() {
+        const tableBody = document.getElementById('peopleTableBody');
+        const status = document.getElementById('status');
 
-            try {
-                const res = await fetch('/api/test');
-                
-                if (!res.ok) {
-                    throw new Error("API responded with an error: " + res.status);
-                }
+        try {
+            // 1. Fetch from your Cloudflare Worker API
+            const response = await fetch('/api/test');
+            
+            if (!response.ok) throw new Error("Database connection failed");
 
-                const data = await res.json();
-                console.log("Data received:", data);
+            const masterData = await response.json();
+            console.log("Master Data Received:", masterData);
 
-                if (!data || data.length === 0) {
-                    display.innerHTML = "<tr><td colspan='5'>No records found in the system.</td></tr>";
-                    return;
-                }
+            // 2. Access the 'people' array inside the master object
+            const people = masterData.people;
 
-                // Injecting the data into the table
-                display.innerHTML = data.map(p => `
-                    <tr>
-                        <td>${p.first_name || 'N/A'} ${p.family_name || ''}</td>
-                        <td>${p.DateOfBirth || 'N/A'}</td>
-                        <td>${p.National_Insurance || 'N/A'}</td>
-                        <td>${p.Hotel || 'N/A'}</td>
-                        <td>${p.Country || 'N/A'}</td>
-                    </tr>
-                `).join('');
-
-                status.innerHTML = "✅ Data loaded successfully.";
-
-            } catch (error) {
-                console.error("Fetch error:", error);
-                status.innerHTML = `<span class="error">❌ Error: ${error.message}</span>`;
+            if (!people || people.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No records found.</td></tr>';
+                status.innerText = "Database is empty.";
+                return;
             }
-        }
 
-        // Run the function immediately
-        loadUser();
-    </script>
+            // 3. Map the data to HTML rows
+            tableBody.innerHTML = people.map(person => `
+                <tr>
+                    <td><strong>${person.first_name} ${person.family_name}</strong></td>
+                    <td>${person.DateOfBirth || 'N/A'}</td>
+                    <td><code>${person.National_Insurance || 'N/A'}</code></td>
+                    <td>${person.Hotel || 'N/A'}</td>
+                    <td>
+                        <button class="details-btn" onclick="goToDetails('${person.People_id}')">
+                            Details
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+
+            status.innerText = `Showing ${people.length} records from Cloudflare D1.`;
+
+        } catch (error) {
+            console.error("Error:", error);
+            tableBody.innerHTML = `<tr><td colspan="5" style="color:red;">Error loading data: ${error.message}</td></tr>`;
+            status.innerText = "Connection Error.";
+        }
+    }
+
+    /**
+     * Handles redirection to the details page with a URL parameter
+     */
+    function goToDetails(personId) {
+        if (!personId) {
+            alert("Error: Missing Person ID");
+            return;
+        }
+        window.location.href = `details.html?id=${personId}`;
+    }
+
+    // Initialize the page
+    loadData();
+</script>
+
 </body>
 </html>
