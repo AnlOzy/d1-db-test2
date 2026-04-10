@@ -209,7 +209,17 @@ const itemsData = [
   { ItemID: 9, ItemName: "Light Bulb (LED)", ItemAmount: 1, VisitID: "V-105" },
   { ItemID: 10, ItemName: "Cleaning Spray", ItemAmount: 1, VisitID: "V-105" }
 ];
-  return new Response(JSON.stringify(dummyData), {
-    headers: { "Content-Type": "application/json" }
+  
+const masterData = {
+    people: peopleData,
+    visits: visitData,
+    items: itemsData
+  };
+
+  return new Response(JSON.stringify(masterData), {
+    headers: { 
+      "Content-Type": "application/json",
+      "Access-Control-Allow-Origin": "*" // Good for avoiding CORS errors during testing
+    }
   });
 }
