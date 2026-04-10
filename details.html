@@ -3,40 +3,51 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Personal Record Details</title>
+    <title>Comprehensive Personal Record</title>
     <style>
-        :root { --primary: #2563eb; --bg: #f1f5f9; }
-        body { font-family: sans-serif; background: var(--bg); padding: 40px; }
-        .container { max-width: 900px; margin: auto; }
-        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .label { font-size: 0.8rem; color: #64748b; text-transform: uppercase; font-weight: bold; }
-        .value { font-size: 1.1rem; margin-bottom: 10px; }
-        table { width: 100%; border-collapse: collapse; background: white; border-radius: 12px; overflow: hidden; }
+        :root { --primary: #2563eb; --bg: #f1f5f9; --slate: #64748b; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); padding: 40px; color: #1e293b; }
+        .container { max-width: 1000px; margin: auto; }
+        .back-link { text-decoration: none; color: var(--primary); font-weight: bold; margin-bottom: 20px; display: inline-block; }
+        
+        /* Profile Card Styling */
+        .card { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin-bottom: 30px; }
+        .section-title { font-size: 0.9rem; color: var(--primary); text-transform: uppercase; letter-spacing: 0.1em; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; margin: 25px 0 15px 0; font-weight: bold; }
+        .section-title:first-of-type { margin-top: 0; }
+
+        .data-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; }
+        .data-item { display: flex; flex-direction: column; }
+        .label { font-size: 0.75rem; color: var(--slate); text-transform: uppercase; font-weight: 700; margin-bottom: 4px; }
+        .value { font-size: 1rem; color: #0f172a; word-break: break-all; }
+        
+        /* Table Styling */
+        table { width: 100%; border-collapse: collapse; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         th, td { padding: 15px; text-align: left; border-bottom: 1px solid #e2e8f0; }
-        th { background: #1e293b; color: white; font-size: 0.8rem; }
-        .item-tag { background: #fef9c3; color: #854d0e; padding: 2px 6px; border-radius: 4px; font-size: 0.8rem; margin-right: 5px; border: 1px solid #fde047; }
-        .back-link { text-decoration: none; color: var(--primary); font-weight: bold; display: block; margin-bottom: 20px; }
+        th { background: #1e293b; color: white; font-size: 0.75rem; text-transform: uppercase; }
+        .item-tag { background: #dcfce7; color: #166534; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; margin-right: 5px; border: 1px solid #bbf7d0; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <a href="index.html" class="back-link">← Back to Directory</a>
+    <a href="index.html" class="back-link">← Return to Directory</a>
 
-    <div id="personCard" class="card">Loading profile...</div>
+    <div id="fullProfile" class="card">
+        <p>Loading comprehensive record...</p>
+    </div>
 
-    <h3>Visit & Provision History</h3>
+    <h3>Visit & Provisions History</h3>
     <table>
         <thead>
             <tr>
                 <th>Date</th>
-                <th>Visit Notes</th>
-                <th>Items Taken</th>
+                <th>Notes</th>
+                <th>Items Issued</th>
             </tr>
         </thead>
         <tbody id="historyTable">
-            </tbody>
+            <tr><td colspan="3">Searching for visit logs...</td></tr>
+        </tbody>
     </table>
 </div>
 
@@ -44,7 +55,6 @@
     async function loadFullProfile() {
         const params = new URLSearchParams(window.location.search);
         const pid = params.get('id');
-        const historyTable = document.getElementById('historyTable');
 
         try {
             const res = await fetch('/api/test');
@@ -53,49 +63,68 @@
             // 1. Find the Person
             const p = data.people.find(person => person.People_id === pid);
             if (!p) {
-                document.getElementById('personCard').innerHTML = "<h1>User Not Found</h1>";
+                document.getElementById('fullProfile').innerHTML = "<h1>Record Not Found</h1>";
                 return;
             }
 
-            // 2. Render Person Details
-            document.getElementById('personCard').innerHTML = `
-                <h1 style="margin-top:0;">${p.first_name} ${p.family_name}</h1>
-                <div class="grid">
-                    <div><div class="label">Date of Birth</div><div class="value">${p.DateOfBirth}</div></div>
-                    <div><div class="label">Gender</div><div class="value">${p.Gender}</div></div>
-                    <div><div class="label">Reference (ARC/Visa)</div><div class="value">${p.ARC_no} / ${p.EVisa_Ref_No}</div></div>
-                    <div><div class="label">Current Location</div><div class="value">${p.Hotel} (${p.Room_AptNo})</div></div>
+            // 2. Render EVERY field in the People table
+            document.getElementById('fullProfile').innerHTML = `
+                <h1 style="margin: 0 0 20px 0; color: #0f172a;">${p.first_name} ${p.family_name}</h1>
+                
+                <div class="section-title">Personal Information</div>
+                <div class="data-grid">
+                    <div class="data-item"><div class="label">System ID</div><div class="value">${p.People_id}</div></div>
+                    <div class="data-item"><div class="label">Gender</div><div class="value">${p.Gender || 'Not Specified'}</div></div>
+                    <div class="data-item"><div class="label">Date of Birth</div><div class="value">${p.DateOfBirth || 'N/A'}</div></div>
+                    <div class="data-item"><div class="label">Primary Language</div><div class="value">${p.Language || 'N/A'}</div></div>
+                </div>
+
+                <div class="section-title">Identity & Documentation</div>
+                <div class="data-grid">
+                    <div class="data-item"><div class="label">National Insurance</div><div class="value">${p.National_Insurance || 'N/A'}</div></div>
+                    <div class="data-item"><div class="label">ARC Number</div><div class="value">${p.ARC_no || 'N/A'}</div></div>
+                    <div class="data-item"><div class="label">E-Visa Reference</div><div class="value">${p.EVisa_Ref_No || 'N/A'}</div></div>
+                    <div class="data-item"><div class="label">Port Reference</div><div class="value">${p.Port_ref_no || 'N/A'}</div></div>
+                </div>
+
+                <div class="section-title">Location & Contact</div>
+                <div class="data-grid">
+                    <div class="data-item"><div class="label">Current Hotel</div><div class="value">${p.Hotel || 'N/A'}</div></div>
+                    <div class="data-item"><div class="label">Room / Apt No</div><div class="value">${p.Room_AptNo || 'N/A'}</div></div>
+                    <div class="data-item"><div class="label">Nottingham Address</div><div class="value">${p.Nottingham_Address || 'N/A'}</div></div>
+                    <div class="data-item"><div class="label">Postcode</div><div class="value">${p.Postcode || 'N/A'}</div></div>
+                    <div class="data-item"><div class="label">Origin Country</div><div class="value">${p.Country || 'N/A'}</div></div>
                 </div>
             `;
 
-            // 3. Find Visits and then NEST the Items
+            // 3. Render Visit History with Items
             const myVisits = data.visits.filter(v => v.peopleID === pid);
+            const historyTable = document.getElementById('historyTable');
 
             if (myVisits.length === 0) {
-                historyTable.innerHTML = "<tr><td colspan='3'>No history recorded for this user.</td></tr>";
+                historyTable.innerHTML = "<tr><td colspan='3' style='text-align:center;'>No history found for this record.</td></tr>";
                 return;
             }
 
             historyTable.innerHTML = myVisits.map(v => {
-                // Find items linked to THIS specific visit
                 const myItems = data.items.filter(i => i.VisitID === v.VisitID);
-                const itemHTML = myItems.map(i => `
-                    <span class="item-tag">${i.ItemAmount}x ${i.ItemName}</span>
-                `).join('') || '<em>None</em>';
+                const itemHTML = myItems.map(i => `<span class="item-tag">${i.ItemAmount}x ${i.ItemName}</span>`).join('') || '<em>None</em>';
 
                 return `
                     <tr>
                         <td><strong>${v.VisitDate}</strong></td>
-                        <td style="color: #475569;">${v.Notes}</td>
+                        <td>${v.Notes}</td>
                         <td>${itemHTML}</td>
                     </tr>
                 `;
             }).join('');
 
         } catch (err) {
-            console.error(err);
+            console.error("Error loading profile:", err);
+            document.getElementById('fullProfile').innerHTML = "<p style='color:red;'>Failed to load record details.</p>";
         }
     }
+
     loadFullProfile();
 </script>
 
