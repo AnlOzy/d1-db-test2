@@ -15,7 +15,7 @@ export async function onRequest(context) {
   }
   */
 
-  // GET request: Returning Dummy Data instead of querying SQL
+  // GET request: Returning People Dummy Data 
   const dummyData = [
   {
     People_id: "P001",
@@ -153,6 +153,61 @@ export async function onRequest(context) {
     Hotel: "The Ritz",
     Room_AptNo: "Room 12"
   }
+];
+
+  const visitData = [
+  {
+    VisitID: "V-101",
+    VisitDate: "2026-03-01",
+    Notes: "Initial check-in and induction.",
+    peopleID: "P001" // Oliver Smith
+  },
+  {
+    VisitID: "V-102",
+    VisitDate: "2026-03-15",
+    Notes: "Follow-up regarding document verification.",
+    peopleID: "P001" // Oliver Smith (Second visit)
+  },
+  {
+    VisitID: "V-103",
+    VisitDate: "2026-03-02",
+    Notes: "Standard welfare check.",
+    peopleID: "P002" // Amelia Smith
+  },
+  {
+    VisitID: "V-104",
+    VisitDate: "2026-03-10",
+    Notes: "Requested extra bedding and towels.",
+    peopleID: "P003" // Noah Jones
+  },
+  {
+    VisitID: "V-105",
+    VisitDate: "2026-03-20",
+    Notes: "Room maintenance report completed.",
+    peopleID: "P005" // Leo Taylor
+  }
+];
+
+const itemsData = [
+  // Items for Oliver's first visit (V-101)
+  { ItemID: 1, ItemName: "Hand Soap", ItemAmount: 2, VisitID: "V-101" },
+  { ItemID: 2, ItemName: "Bath Towel", ItemAmount: 1, VisitID: "V-101" },
+  
+  // Items for Oliver's second visit (V-102)
+  { ItemID: 3, ItemName: "Shampoo Bottle", ItemAmount: 1, VisitID: "V-102" },
+
+  // Items for Amelia's visit (V-103)
+  { ItemID: 4, ItemName: "Hand Soap", ItemAmount: 1, VisitID: "V-103" },
+  { ItemID: 5, ItemName: "Toilet Roll", ItemAmount: 4, VisitID: "V-103" },
+
+  // Items for Noah's visit (V-104)
+  { ItemID: 6, ItemName: "Pillow Case", ItemAmount: 2, VisitID: "V-104" },
+  { ItemID: 7, ItemName: "Duvet Cover", ItemAmount: 1, VisitID: "V-104" },
+  { ItemID: 8, ItemName: "Toothbrush", ItemAmount: 1, VisitID: "V-104" },
+
+  // Items for Leo's visit (V-105)
+  { ItemID: 9, ItemName: "Light Bulb (LED)", ItemAmount: 1, VisitID: "V-105" },
+  { ItemID: 10, ItemName: "Cleaning Spray", ItemAmount: 1, VisitID: "V-105" }
 ];
   return new Response(JSON.stringify(dummyData), {
     headers: { "Content-Type": "application/json" }
