@@ -4,21 +4,25 @@
     <meta charset="UTF-8">
     <title>People Database</title>
     <style>
+        body { font-family: sans-serif; padding: 20px; }
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
         th { background-color: #f4f4f4; }
+        .error { color: red; font-weight: bold; }
     </style>
 </head>
 <body>
-    <h1>People Database Test 2</h1>
+    <h1>People Database</h1>
 
     <a href="/api/test" target="_blank">
-        <button type="button">View Raw JSON Data</button>
+        <button type="button">Check Raw API Data</button>
     </a>
 
     <hr>
 
-    <h3>Stored People Records:</h3>
+    <div id="status-message"></div>
+
+    <h3>Stored Records:</h3>
     <table>
         <thead>
             <tr>
@@ -29,40 +33,51 @@
                 <th>Country</th>
             </tr>
         </thead>
-        <tbody id="peopleTableBody">
+        <tbody id="displayArea">
             </tbody>
     </table>
 
     <script>
         async function loadUser() {
+            console.log("Attempting to load data...");
+            const display = document.getElementById('displayArea');
+            const status = document.getElementById('status-message');
+
             try {
                 const res = await fetch('/api/test');
+                
+                if (!res.ok) {
+                    throw new Error("API responded with an error: " + res.status);
+                }
+
                 const data = await res.json();
-                
-                // We target the tbody specifically
-                const tableBody = document.getElementById('peopleTableBody');
-                
-                if (data.length === 0) {
-                    tableBody.innerHTML = "<tr><td colspan='5'>No data found</td></tr>";
+                console.log("Data received:", data);
+
+                if (!data || data.length === 0) {
+                    display.innerHTML = "<tr><td colspan='5'>No records found in the system.</td></tr>";
                     return;
                 }
 
-                // Map the data to table rows
-                tableBody.innerHTML = data.map(p => `
+                // Injecting the data into the table
+                display.innerHTML = data.map(p => `
                     <tr>
-                        <td>${p.first_name} ${p.family_name}</td>
-                        <td>${p.DateOfBirth}</td>
-                        <td>${p.National_Insurance}</td>
-                        <td>${p.Hotel}</td>
-                        <td>${p.Country}</td>
+                        <td>${p.first_name || 'N/A'} ${p.family_name || ''}</td>
+                        <td>${p.DateOfBirth || 'N/A'}</td>
+                        <td>${p.National_Insurance || 'N/A'}</td>
+                        <td>${p.Hotel || 'N/A'}</td>
+                        <td>${p.Country || 'N/A'}</td>
                     </tr>
                 `).join('');
+
+                status.innerHTML = "✅ Data loaded successfully.";
+
             } catch (error) {
-                console.error("Error loading data:", error);
+                console.error("Fetch error:", error);
+                status.innerHTML = `<span class="error">❌ Error: ${error.message}</span>`;
             }
         }
-        
-        // Run on page load
+
+        // Run the function immediately
         loadUser();
     </script>
 </body>
