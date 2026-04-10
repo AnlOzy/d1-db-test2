@@ -2,74 +2,77 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>People Management System</title>
+    <title>People Management</title>
     <style>
-        :root { --primary: #2563eb; --bg: #f8fafc; --text: #1e293b; }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); padding: 40px; }
-        .container { max-width: 1100px; margin: auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #e2e8f0; padding-bottom: 20px; margin-bottom: 20px; }
+        body { font-family: sans-serif; padding: 40px; background: #f4f7f6; }
+        .container { max-width: 900px; margin: auto; background: white; padding: 20px; border-radius: 8px; }
         table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #e2e8f0; }
-        th { background: #f1f5f9; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; }
-        .btn-details { background: var(--primary); color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 500; text-decoration: none; font-size: 0.875rem; }
-        .btn-details:hover { background: #1d4ed8; }
-        .badge { background: #e2e8f0; padding: 4px 8px; border-radius: 4px; font-family: monospace; font-size: 0.85rem; }
+        th, td { padding: 12px; border-bottom: 1px solid #eee; text-align: left; }
+        .error-box { background: #fee2e2; color: #b91c1c; padding: 15px; border-radius: 6px; margin-bottom: 20px; display: none; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <header>
-        <h1>People Directory</h1>
-        <a href="/api/test" target="_blank" style="color: #64748b; font-size: 0.8rem;">View API Source</a>
-    </header>
+    <h1>People Directory</h1>
+    <div id="errorDisplay" class="error-box"></div>
 
     <table>
         <thead>
             <tr>
-                <th>Full Name</th>
-                <th>National Insurance</th>
+                <th>Name</th>
                 <th>Hotel</th>
-                <th>Country</th>
+                <th>NI Number</th>
                 <th>Action</th>
             </tr>
         </thead>
         <tbody id="peopleTable">
-            <tr><td colspan="5">Connecting to Cloudflare D1...</td></tr>
+            <tr><td colspan="4">Loading data...</td></tr>
         </tbody>
     </table>
 </div>
 
 <script>
-    async function loadDirectory() {
+    async function loadData() {
         const tableBody = document.getElementById('peopleTable');
+        const errorDisplay = document.getElementById('errorDisplay');
+
         try {
             const res = await fetch('/api/test');
             const data = await res.json();
-            
-            // Accessing the 'people' array from the master object
-            const people = data.people;
 
-            tableBody.innerHTML = (data?.people || []).map(p => ` ... `).join('');
+            // If the backend sent an error message, show it but don't crash
+            if (data.error) {
+                errorDisplay.style.display = 'block';
+                errorDisplay.innerText = "Database Error: " + data.error;
+            }
+
+            // CRITICAL FIX: Use (data.people || []) to prevent the "map" error
+            const people = data.people || [];
+
+            if (people.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="4">No records found. Try refreshing.</td></tr>';
+                return;
+            }
+
+            tableBody.innerHTML = people.map(p => `
                 <tr>
                     <td><strong>${p.first_name} ${p.family_name}</strong></td>
-                    <td><span class="badge">${p.National_Insurance || 'N/A'}</span></td>
                     <td>${p.Hotel || 'N/A'}</td>
-                    <td>${p.Country || 'N/A'}</td>
+                    <td><code>${p.National_Insurance || 'N/A'}</code></td>
                     <td>
-                        <button class="btn-details" onclick="window.location.href='details.html?id=${p.People_id}'">
-                            Details
-                        </button>
+                        <button onclick="window.location.href='details.html?id=${p.People_id}'">Details</button>
                     </td>
                 </tr>
             `).join('');
+
         } catch (err) {
-            tableBody.innerHTML = `<tr><td colspan="5" style="color:red;">Error: ${err.message}</td></tr>`;
+            tableBody.innerHTML = '<tr><td colspan="4" style="color:red">Connection failed.</td></tr>';
+            console.error(err);
         }
     }
-    loadDirectory();
-</script>
 
+    loadData();
+</script>
 </body>
 </html>
