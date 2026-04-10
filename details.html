@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Person Details</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; line-height: 1.6; }
+        .card { border: 1px solid #ccc; padding: 20px; border-radius: 8px; background: #f9f9f9; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+        .back-btn { margin-bottom: 20px; display: inline-block; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <button class="back-btn" onclick="window.location.href='index.html'">← Back to List</button>
+    
+    <div id="personInfo" class="card">Loading person details...</div>
+
+    <h3>Visit History</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Visit ID</th>
+                <th>Date</th>
+                <th>Notes</th>
+            </tr>
+        </thead>
+        <tbody id="visitTableBody">
+            <tr><td colspan="3">No visits found.</td></tr>
+        </tbody>
+    </table>
+
+    <script>
+        async function loadDetails() {
+            // 1. Get the ID from the URL (e.g., ?id=P001)
+            const params = new URLSearchParams(window.location.search);
+            const personId = params.get('id');
+
+            // 2. Fetch the Master Data
+            const res = await fetch('/api/test');
+            const data = await res.json();
+
+            // 3. Find the specific person
+            const person = data.people.find(p => p.People_id === personId);
+            
+            if (person) {
+                document.getElementById('personInfo').innerHTML = `
+                    <h2>${person.first_name} ${person.family_name}</h2>
+                    <p><strong>DOB:</strong> ${person.DateOfBirth}</p>
+                    <p><strong>National Insurance:</strong> ${person.National_Insurance}</p>
+                    <p><strong>Current Hotel:</strong> ${person.Hotel}</p>
+                    <p><strong>Address:</strong> ${person.Nottingham_Address}, ${person.Postcode}</p>
+                `;
+
+                // 4. Find all visits for this person
+                const personVisits = data.visits.filter(v => v.peopleID === personId);
+                
+                if (personVisits.length > 0) {
+                    document.getElementById('visitTableBody').innerHTML = personVisits.map(v => `
+                        <tr>
+                            <td>${v.VisitID}</td>
+                            <td>${v.VisitDate}</td>
+                            <td>${v.Notes}</td>
+                        </tr>
+                    `).join('');
+                }
+            } else {
+                document.getElementById('personInfo').innerHTML = "<h2>Person not found</h2>";
+            }
+        }
+
+        loadDetails();
+    </script>
+</body>
+</html>
