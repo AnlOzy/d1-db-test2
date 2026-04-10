@@ -1,27 +1,28 @@
-
 export async function onRequest(context) {
   const { env } = context;
   const db = env["d1-test1"];
 
-  try {
-    // 1. Check if we already have data
-    const countResult = await db.prepare("SELECT COUNT(*) as count FROM People").first();
-    // 2. If the database is empty, seed it automatically
-    if (countResult.count === 0) {
-      console.log("Database empty. Auto-seeding 15 records...");
-      
-      await db.batch([
-        // SEED BASE TABLES
-        db.prepare("INSERT OR IGNORE INTO Country (countryName) VALUES ('United Kingdom'), ('France'), ('Germany'), ('Nigeria'), ('India')"),
-        db.prepare("INSERT OR IGNORE INTO Language (languageName) VALUES ('English'), ('Welsh'), ('French'), ('Yoruba'), ('Hindi')"),
-        db.prepare("INSERT OR IGNORE INTO Hotel (HotelName) VALUES ('The Savoy'), ('The Ritz'), ('Hilton'), ('Ibis'), ('Marriott')"),
+  // Default empty structure so the frontend doesn't crash
+  let responseData = { people: [], visits: [], items: [] };
 
-        // SEED 15 PEOPLE (Couples & Families included)
-        db.prepare(`INSERT INTO People (People_id, first_name, family_name, DateOfBirth, Gender, National_Insurance, Country, Language, Hotel, Postcode, Nottingham_Address) VALUES 
+  try {
+    // 1. Check if the People table exists and has data
+    const tableCheck = await db.prepare("SELECT COUNT(*) as count FROM People").first();
+    
+    if (!tableCheck || tableCheck.count === 0) {
+      // 2. REPAIR/SEED: Populate lookup tables FIRST to avoid Foreign Key errors
+      await db.batch([
+        db.prepare("INSERT OR IGNORE INTO Country (countryName) VALUES ('United Kingdom'), ('France'), ('Germany'), ('Nigeria'), ('India')"),
+        db.prepare("INSERT OR IGNORE INTO Language (languageName) VALUES ('English'), ('French'), ('German'), ('Yoruba'), ('Hindi')"),
+        db.prepare("INSERT OR IGNORE INTO Hotel (HotelName) VALUES ('The Savoy'), ('The Ritz'), ('Hilton'), ('Ibis'), ('Marriott')"),
+        
+        // 3. Insert People (15 records)
+        db.prepare(`INSERT OR IGNORE INTO People (People_id, first_name, family_name, DateOfBirth, Gender, National_Insurance, Country, Language, Hotel, Postcode, Nottingham_Address) VALUES 
           ('P001', 'Oliver', 'Smith', '1985-05-12', 'Male', 'QQ112233A', 'United Kingdom', 'English', 'The Savoy', 'NG1 1AA', '123 Victoria St'),
           ('P002', 'Amelia', 'Smith', '1988-11-20', 'Female', 'AB445566C', 'United Kingdom', 'English', 'The Savoy', 'NG1 1AA', '123 Victoria St'),
-          ('P003', 'Noah', 'Jones', '1992-02-15', 'Male', 'TN778899Z', 'United Kingdom', 'Welsh', 'The Ritz', 'NG2 3BB', '45 Station Rd'),
+          ('P003', 'Noah', 'Jones', '1992-02-15', 'Male', 'TN778899Z', 'United Kingdom', 'English', 'The Ritz', 'NG2 3BB', '45 Station Rd'),
           ('P004', 'Isla', 'Jones', '1994-07-30', 'Female', 'XY223344B', 'United Kingdom', 'English', 'The Ritz', 'NG2 3BB', '45 Station Rd'),
+          ('P015', 'Ella', 'Robinson', '1998-09-09', 'Female', 'ER001122N', 'India', 'Hindi', 'The Ritz', 'NG1 9HH', '42 Bridlesmith Gate'),
           ('P005', 'Leo', 'Taylor', '1980-01-01', 'Male', 'PP554433D', 'United Kingdom', 'English', 'Hilton', 'NG7 4LL', '88 Derby Rd'),
           ('P006', 'Ava', 'Taylor', '1982-12-12', 'Female', 'LM667788E', 'United Kingdom', 'English', 'Ibis', 'NG8 5PP', '12 Wollaton Rd'),
           ('P007', 'George', 'Taylor', '2000-03-22', 'Male', 'JW123456F', 'United Kingdom', 'English', 'The Savoy', 'NG1 2CC', '99 Mansfield Rd'),
@@ -31,35 +32,39 @@ export async function onRequest(context) {
           ('P011', 'Sophia', 'Thomas', '1989-04-04', 'Female', 'ST882211J', 'France', 'French', 'Ibis', 'NG9 2DD', '77 Beeston Lane'),
           ('P012', 'Jack', 'Roberts', '1993-02-02', 'Male', 'JR334455K', 'Germany', 'German', 'The Savoy', 'NG1 6EE', '14 Canal St'),
           ('P013', 'Grace', 'Walker', '1996-06-06', 'Female', 'GW778899L', 'United Kingdom', 'English', 'Marriott', 'NG1 7FF', '33 Fletcher Gate'),
-          ('P014', 'Freddie', 'Wright', '1984-03-03', 'Male', 'FW121212M', 'Nigeria', 'Yoruba', 'Hilton', 'NG1 8GG', '9 Low Pavement'),
-          ('P015', 'Ella', 'Robinson', '1998-09-09', 'Female', 'ER001122N', 'India', 'Hindi', 'The Ritz', 'NG1 9HH', '42 Bridlesmith Gate')`),
-
-        // SEED VISITS
-        db.prepare("INSERT INTO Visit (VisitID, VisitDate, Notes, peopleID) VALUES ('V-101', '2026-04-01', 'Initial Check-in', 'P001'), ('V-102', '2026-04-02', 'Welfare Call', 'P003')"),
-
-        // SEED ITEMS
-        db.prepare("INSERT INTO ItemTaken (ItemName, ItemAmount, VisitID) VALUES ('Soap', 2, 'V-101'), ('Towel', 1, 'V-101')")
+          ('P014', 'Freddie', 'Wright', '1984-03-03', 'Male', 'FW121212M', 'Nigeria', 'Yoruba', 'Hilton', 'NG1 8GG', '9 Low Pavement')`),
+        
+        // 4. Insert Visits & Items
+        db.prepare("INSERT OR IGNORE INTO Visit (VisitID, VisitDate, Notes, peopleID) VALUES ('V-101', '2026-04-01', 'Induction', 'P001')"),
+        db.prepare("INSERT OR IGNORE INTO ItemTaken (ItemName, ItemAmount, VisitID) VALUES ('Soap', 2, 'V-101')")
       ]);
     }
 
-    // 3. Fetch all data to return to the website
+    // 5. Fetch actual data
     const people = await db.prepare("SELECT * FROM People").all();
     const visits = await db.prepare("SELECT * FROM Visit").all();
     const items = await db.prepare("SELECT * FROM ItemTaken").all();
 
-    return new Response(JSON.stringify({
+    responseData = {
       people: people.results || [],
       visits: visits.results || [],
       items: items.results || []
-    }), {
-      headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" }
-    });
+    };
 
   } catch (error) {
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
+    // If SQL fails, we still return the empty structure + the error message
+    console.error(error);
+    return new Response(JSON.stringify({ 
+      ...responseData, 
+      error: error.message,
+      hint: "Check if you have run the DROP/CREATE table scripts in the D1 console."
+    }), {
+      status: 200, // Keep 200 so the frontend doesn't throw a network error
       headers: { "Content-Type": "application/json" }
     });
   }
-}
 
+  return new Response(JSON.stringify(responseData), {
+    headers: { "Content-Type": "application/json" }
+  });
+}
