@@ -1,4 +1,4 @@
-/*
+
 export async function onRequest(context) {
   const { env } = context;
   const db = env["d1-test1"];
@@ -62,4 +62,4 @@ export async function onRequest(context) {
     });
   }
 }
-*/
+
