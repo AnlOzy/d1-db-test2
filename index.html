@@ -5,182 +5,70 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>People Management System</title>
     <style>
-        :root {
-            --primary-color: #2563eb;
-            --bg-color: #f8fafc;
-            --text-color: #1e293b;
-        }
-
-        body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            margin: 0;
-            padding: 40px;
-        }
-
-        .container {
-            max-width: 1000px;
-            margin: auto;
-            background: white;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
-        }
-
-        header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 2px solid #e2e8f0;
-            padding-bottom: 20px;
-            margin-bottom: 20px;
-        }
-
-        h1 { margin: 0; font-size: 1.5rem; }
-
-        .api-btn {
-            background-color: #64748b;
-            color: white;
-            text-decoration: none;
-            padding: 8px 16px;
-            border-radius: 6px;
-            font-size: 0.875rem;
-        }
-
-        table { 
-            width: 100%; 
-            border-collapse: collapse; 
-            margin-top: 10px; 
-        }
-
-        th, td { 
-            padding: 12px 15px; 
-            text-align: left; 
-            border-bottom: 1px solid #e2e8f0; 
-        }
-
-        th { 
-            background-color: #f1f5f9; 
-            font-weight: 600; 
-            text-transform: uppercase;
-            font-size: 0.75rem;
-            letter-spacing: 0.05em;
-        }
-
-        tr:hover { background-color: #f8fafc; }
-
-        .details-btn {
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            padding: 6px 12px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: 500;
-            transition: background 0.2s;
-        }
-
-        .details-btn:hover {
-            background-color: #1d4ed8;
-        }
-
-        #status {
-            margin-top: 10px;
-            font-size: 0.875rem;
-            color: #64748b;
-        }
+        :root { --primary: #2563eb; --bg: #f8fafc; --text: #1e293b; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); padding: 40px; }
+        .container { max-width: 1100px; margin: auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #e2e8f0; padding-bottom: 20px; margin-bottom: 20px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #e2e8f0; }
+        th { background: #f1f5f9; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; }
+        .btn-details { background: var(--primary); color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 500; text-decoration: none; font-size: 0.875rem; }
+        .btn-details:hover { background: #1d4ed8; }
+        .badge { background: #e2e8f0; padding: 4px 8px; border-radius: 4px; font-family: monospace; font-size: 0.85rem; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <header>
-        <h1>People Database</h1>
-        <a href="/api/test" target="_blank" class="api-btn">Inspect Raw JSON</a>
+        <h1>People Directory</h1>
+        <a href="/api/test" target="_blank" style="color: #64748b; font-size: 0.8rem;">View API Source</a>
     </header>
-
-    <div id="status">Syncing with Cloudflare D1...</div>
 
     <table>
         <thead>
             <tr>
                 <th>Full Name</th>
-                <th>DOB</th>
-                <th>NI Number</th>
+                <th>National Insurance</th>
                 <th>Hotel</th>
-                <th>Actions</th>
+                <th>Country</th>
+                <th>Action</th>
             </tr>
         </thead>
-        <tbody id="peopleTableBody">
-            <tr><td colspan="5">Loading records...</td></tr>
+        <tbody id="peopleTable">
+            <tr><td colspan="5">Connecting to Cloudflare D1...</td></tr>
         </tbody>
     </table>
 </div>
 
 <script>
-    /**
-     * Fetches the Master Data Object and populates the table
-     */
-    async function loadData() {
-        const tableBody = document.getElementById('peopleTableBody');
-        const status = document.getElementById('status');
-
+    async function loadDirectory() {
+        const tableBody = document.getElementById('peopleTable');
         try {
-            // 1. Fetch from your Cloudflare Worker API
-            const response = await fetch('/api/test');
+            const res = await fetch('/api/test');
+            const data = await res.json();
             
-            if (!response.ok) throw new Error("Database connection failed");
+            // Accessing the 'people' array from the master object
+            const people = data.people;
 
-            const masterData = await response.json();
-            console.log("Master Data Received:", masterData);
-
-            // 2. Access the 'people' array inside the master object
-            const people = masterData.people;
-
-            if (!people || people.length === 0) {
-                tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No records found.</td></tr>';
-                status.innerText = "Database is empty.";
-                return;
-            }
-
-            // 3. Map the data to HTML rows
-            tableBody.innerHTML = people.map(person => `
+            tableBody.innerHTML = people.map(p => `
                 <tr>
-                    <td><strong>${person.first_name} ${person.family_name}</strong></td>
-                    <td>${person.DateOfBirth || 'N/A'}</td>
-                    <td><code>${person.National_Insurance || 'N/A'}</code></td>
-                    <td>${person.Hotel || 'N/A'}</td>
+                    <td><strong>${p.first_name} ${p.family_name}</strong></td>
+                    <td><span class="badge">${p.National_Insurance || 'N/A'}</span></td>
+                    <td>${p.Hotel || 'N/A'}</td>
+                    <td>${p.Country || 'N/A'}</td>
                     <td>
-                        <button class="details-btn" onclick="goToDetails('${person.People_id}')">
+                        <button class="btn-details" onclick="window.location.href='details.html?id=${p.People_id}'">
                             Details
                         </button>
                     </td>
                 </tr>
             `).join('');
-
-            status.innerText = `Showing ${people.length} records from Cloudflare D1.`;
-
-        } catch (error) {
-            console.error("Error:", error);
-            tableBody.innerHTML = `<tr><td colspan="5" style="color:red;">Error loading data: ${error.message}</td></tr>`;
-            status.innerText = "Connection Error.";
+        } catch (err) {
+            tableBody.innerHTML = `<tr><td colspan="5" style="color:red;">Error: ${err.message}</td></tr>`;
         }
     }
-
-    /**
-     * Handles redirection to the details page with a URL parameter
-     */
-    function goToDetails(personId) {
-        if (!personId) {
-            alert("Error: Missing Person ID");
-            return;
-        }
-        window.location.href = `details.html?id=${personId}`;
-    }
-
-    // Initialize the page
-    loadData();
+    loadDirectory();
 </script>
 
 </body>
