@@ -51,7 +51,7 @@
             // Accessing the 'people' array from the master object
             const people = data.people;
 
-            tableBody.innerHTML = people.map(p => `
+            tableBody.innerHTML = (data?.people || []).map(p => ` ... `).join('');
                 <tr>
                     <td><strong>${p.first_name} ${p.family_name}</strong></td>
                     <td><span class="badge">${p.National_Insurance || 'N/A'}</span></td>
