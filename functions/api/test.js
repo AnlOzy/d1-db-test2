@@ -1,3 +1,4 @@
+/*
 export async function onRequest(context) {
   const { env } = context;
   const db = env["d1-test1"];
@@ -5,7 +6,6 @@ export async function onRequest(context) {
   try {
     // 1. Check if we already have data
     const countResult = await db.prepare("SELECT COUNT(*) as count FROM People").first();
-    
     // 2. If the database is empty, seed it automatically
     if (countResult.count === 0) {
       console.log("Database empty. Auto-seeding 15 records...");
@@ -62,3 +62,4 @@ export async function onRequest(context) {
     });
   }
 }
+*/
