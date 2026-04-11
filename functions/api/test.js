@@ -14,7 +14,7 @@ export async function onRequest(context) {
       await db.batch([
         db.prepare("INSERT OR IGNORE INTO Country (countryName) VALUES ('United Kingdom'), ('France'), ('Germany'), ('Nigeria'), ('India')"),
         db.prepare("INSERT OR IGNORE INTO Language (languageName) VALUES ('English'), ('French'), ('German'), ('Yoruba'), ('Hindi')"),
-        db.prepare("INSERT OR IGNORE INTO Hotel (HotelName) VALUES ('The Savoy'), ('The Ritz'), ('Hilton'), ('Ibis'), ('Marriott')"),
+        db.prepare("INSERT OR IGNORE INTO Hotel (HotelName) VALUES ('Hotel 1'), ('Hotel 1'), ('Hotel 1'), ('Hotel 1'), ('Hotel 1')"),
         
         // 3. Insert People (15 records)
         db.prepare(`INSERT OR IGNORE INTO People (People_id, first_name, family_name, DateOfBirth, Gender, National_Insurance, Country, Language, Hotel, Postcode, Nottingham_Address) VALUES 
